@@ -15,7 +15,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 // Initialize Google Generative AI
 
-const genAI = new GoogleGenerativeAI('AIzaSyBgoobI0kEk3egca3NkRWfQMr6FMUfl0Io')
+const genAI = new GoogleGenerativeAI('')
 const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 // Language options
 const languages = [
