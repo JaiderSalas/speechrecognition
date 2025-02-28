@@ -13,7 +13,9 @@ import {
 import { Mic, MicOff, Play, RotateCcw } from 'lucide-react'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const genAI = new GoogleGenerativeAI()
+// Initialize Google Generative AI
+
+const genAI = new GoogleGenerativeAI('AIzaSyBgoobI0kEk3egca3NkRWfQMr6FMUfl0Io')
 const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 // Language options
 const languages = [
@@ -61,7 +63,7 @@ export default function TranslationApp() {
             recognitionRef.current.continuous = true
             recognitionRef.current.interimResults = true
 
-            recognitionRef.current.onresult = (event) => {
+            recognitionRef.current.onresult = async (event) => {
                 let interimTranscript = ''
                 let finalTranscript = ''
 
@@ -74,11 +76,11 @@ export default function TranslationApp() {
                     }
                 }
 
-                setTranscript((prev) => {
-                    const newTranscript = prev + finalTranscript
-                    translateText(newTranscript)
-                    return newTranscript
-                })
+                setTranscript((prev) => prev + finalTranscript)
+
+                if (finalTranscript) {
+                    await translateText(finalTranscript)
+                }
             }
 
             recognitionRef.current.onerror = (event) => {
@@ -140,13 +142,20 @@ export default function TranslationApp() {
                 languages.find((l) => l.value === targetLanguage)?.label ||
                 'Spanish'
 
-            const prompt = `Translate the following healthcare conversation from ${sourceLang} to ${targetLang}. 
+            const correctionPrompt = `Correct the following healthcare conversation text. Maintain medical accuracy and terminology. Only return the corrected text, nothing else.
+            
+            Text to correct: "${text}"`
+
+            const correctionResult = await model.generateContent(correctionPrompt)
+            const correctedText = correctionResult.response.text()
+
+            const translationPrompt = `Translate the following healthcare conversation from ${sourceLang} to ${targetLang}. 
                 Maintain medical accuracy and terminology. Only return the translated text, nothing else.
                 
-                Text to translate: "${text}"`
+                Text to translate: "${correctedText}"`
 
-            const result = await model.generateContent(prompt)
-            setTranslatedText(result.response.text())
+            const translationResult = await model.generateContent(translationPrompt)
+            setTranslatedText(translationResult.response.text())
         } catch (error) {
             console.error('Translation error:', error)
         } finally {
