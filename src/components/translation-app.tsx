@@ -53,10 +53,12 @@ export default function TranslationApp() {
             const SpeechRecognition =
                 window.SpeechRecognition || window.webkitSpeechRecognition;
             recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = true;
-            recognitionRef.current.interimResults = true;
+            if (recognitionRef.current) {
+                recognitionRef.current.continuous = true;
+                recognitionRef.current.interimResults = true;
+            }
 
-            recognitionRef.current.onresult = async (event) => {
+            recognitionRef.current!.onresult = async (event) => {
                 let interimTranscript = '';
                 let finalTranscript = '';
 
@@ -76,7 +78,7 @@ export default function TranslationApp() {
                 }
             };
 
-            recognitionRef.current.onerror = (event) => {
+            recognitionRef.current!.onerror = (event) => {
                 console.error('Speech recognition error', event.error);
                 setIsListening(false);
             };
