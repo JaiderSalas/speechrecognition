@@ -1,54 +1,126 @@
-# React + TypeScript + Vite
+# Healthcare Translation Web App Documentation
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 1. Project Overview
 
-Currently, two official plugins are available:
+The **Healthcare Translation Web App** is a web-based prototype designed to enable real-time, multilingual translation between patients and healthcare providers. This application converts spoken input into text, provides a live transcript, and offers a translated version with audio playback. The project showcases technical proficiency, development speed, and the effective use of generative AI for efficient healthcare communication.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 2. Scope and Features
 
-## Expanding the ESLint configuration
+### **Key Features:**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Voice-to-Text with Generative AI:** Converts spoken input into a text transcript, enhancing transcription accuracy, particularly for medical terms.
+- **Real-Time Translation and Audio Playback:** Provides real-time translation of the transcript with a "Speak" button for audio playback.
+- **Mobile-First Design:** Ensures responsiveness and optimization for both mobile and desktop devices.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## 3. Technology Stack
+
+The project utilizes modern web technologies and AI tools:
+
+- **Frontend:** Vite, React, TypeScript
+- **AI APIs:** Gemini AI (for text translation), Web Speech Recognition API (for voice-to-text conversion)
+- **Styling:** CSS
+- **Deployment:** Vercel
+
+## 4. Code Structure
+
+The project is structured as follows:
+
+```
+components.json
+index.html
+package.json
+README.md
+src/
+    App.tsx
+    components/
+        translation-app.tsx
+        ui/
+            button.tsx
+            card.tsx
+    global.css
+    lib/
+        utils.ts
+    main.tsx
+    vite-env.d.ts
+tsconfig.app.json
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### **Main Components**
+- App.tsx: The main component of the application that includes the header, main content and footer.
+- translation-app.tsx: The main component of the translation application that handles speech recognition, translation and speech synthesis logic.
+### **UI Components**
+- button.tsx: Reusable button component.
+- card.tsx: Reusable card component.
+### **Utilities**
+- utils.ts: cn function to combine CSS classes.
+### **Global Styles**
+- The global.css file contains the global styles of the application, including Tailwind CSS settings and custom CSS variables.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 5. Installation & Setup
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+### **Prerequisites:**
+
+- Node.js & npm installed
+
+### **Steps to Run Locally:**
+
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/your-repo/healthcare-translation-app.git
+   ```
+2. Navigate to the project directory:
+   ```sh
+   cd healthcare-translation-app
+   ```
+3. Install dependencies:
+   ```sh
+   npm install
+   ```
+4. Start the development server:
+   ```sh
+   npm run dev
+   ```
+5. Open the application in your browser at `http://localhost:5173`.
+
+## 6. API Documentation
+
+The application integrates with the following APIs:
+
+- **Gemini AI API** for translation and text processing.
+- **Web Speech Recognition API** for voice-to-text conversion.
+
+## 7. Contribution Guidelines
+
+### **How to Contribute:**
+
+1. Fork the project.
+2. Create a new branch:
+   ```sh
+   git checkout -b feature/nueva-funcionalidad
+   ```
+3. Implement your changes and commit:
+   ```sh
+   git commit -am 'Añadir nueva funcionalidad'
+   ```
+4. Push the changes to your branch:
+   ```sh
+   git push origin feature/nueva-funcionalidad
+   ```
+5. Open a Pull Request.
+
+## 8. Security Considerations
+
+- **Data Privacy:** Ensure secure handling of patient conversations to maintain confidentiality.
+- **API Security:** Use authentication and rate-limiting mechanisms where applicable.
+- **Error Handling:** Implement robust error handling for API failures.
+
+## 9. License & Credits
+
+This project is licensed under the **MIT License**.
+
+**Author(s):** Jaider Salas Burgos
+
+
