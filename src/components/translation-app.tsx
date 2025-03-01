@@ -31,18 +31,17 @@ declare global {
         SpeechSynthesisUtterance: any
     }
 }
-
 export default function TranslationApp() {
-    const [isListening, setIsListening] = useState(false)
-    const [sourceLanguage, setSourceLanguage] = useState('en')
-    const [targetLanguage, setTargetLanguage] = useState('es')
-    const [transcript, setTranscript] = useState('')
-    const [interimTranscript, setInterimTranscript] = useState('')
-    const [translatedText, setTranslatedText] = useState('')
-    const [isTranslating, setIsTranslating] = useState(false)
-    const [isSpeaking, setIsSpeaking] = useState(false)
+    const [isListening, setIsListening] = useState(false);
+    const [sourceLanguage, setSourceLanguage] = useState('en');
+    const [targetLanguage, setTargetLanguage] = useState('es');
+    const [transcript, setTranscript] = useState('');
+    const [interimTranscript, setInterimTranscript] = useState('');
+    const [translatedText, setTranslatedText] = useState('');
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
 
-    const recognitionRef = useRef<SpeechRecognition | null>(null)
+    const recognitionRef = useRef<SpeechRecognition | null>(null);
 
     // Initialize speech recognition
     useEffect(() => {
@@ -52,124 +51,124 @@ export default function TranslationApp() {
                 'webkitSpeechRecognition' in window)
         ) {
             const SpeechRecognition =
-                window.SpeechRecognition || window.webkitSpeechRecognition
-            recognitionRef.current = new SpeechRecognition()
-            recognitionRef.current.continuous = true
-            recognitionRef.current.interimResults = true
+                window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.continuous = true;
+            recognitionRef.current.interimResults = true;
 
             recognitionRef.current.onresult = async (event) => {
-                let interimTranscript = ''
-                let finalTranscript = ''
+                let interimTranscript = '';
+                let finalTranscript = '';
 
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript
+                    const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
-                        finalTranscript += transcript
+                        finalTranscript += transcript;
                     } else {
-                        interimTranscript += transcript
+                        interimTranscript += transcript;
                     }
                 }
-                setInterimTranscript(interimTranscript)
-                setTranscript((prev) => prev + finalTranscript)
+                setInterimTranscript(interimTranscript);
+                setTranscript((prev) => prev + finalTranscript);
 
                 if (finalTranscript) {
-                    await translateText(finalTranscript, sourceLanguage, targetLanguage)
+                    await translateText(finalTranscript, sourceLanguage, targetLanguage);
                 }
-            }
+            };
 
             recognitionRef.current.onerror = (event) => {
-                console.error('Speech recognition error', event.error)
-                setIsListening(false)
-            }
+                console.error('Speech recognition error', event.error);
+                setIsListening(false);
+            };
         }
 
         return () => {
             if (recognitionRef.current) {
-                recognitionRef.current.stop()
+                recognitionRef.current.stop();
             }
-        }
-    }, [sourceLanguage, targetLanguage])
+        };
+    }, [sourceLanguage, targetLanguage]);
 
     // Update recognition language when source language changes
     useEffect(() => {
-        
         if (recognitionRef.current) {
-            recognitionRef.current.lang = sourceLanguage
+            recognitionRef.current.lang = sourceLanguage;
         }
-    }, [sourceLanguage])
+    }, [sourceLanguage]);
 
     // Toggle listening
     const toggleListening = () => {
-        resetAll()
         if (isListening) {
             if (recognitionRef.current) {
-                recognitionRef.current.stop()
+                recognitionRef.current.stop();
             }
-            setIsListening(false)
+            setIsListening(false);
         } else {
             if (recognitionRef.current) {
-                recognitionRef.current.start()
+                recognitionRef.current.start();
             }
-            setIsListening(true)
+            setIsListening(true);
         }
-    }
+    };
 
     // Reset all
     const resetAll = () => {
         if (recognitionRef.current && isListening) {
-            recognitionRef.current.stop()
+            recognitionRef.current.stop();
         }
-        setIsListening(false)
-        setTranscript('')
-        setInterimTranscript('')
-        setTranslatedText('')
-    }
+        setIsListening(false);
+        setTranscript('');
+        setInterimTranscript('');
+        setTranslatedText('');
+    };
 
     // Translate text using AI
-    const translateText = async ( text: string, source: string, target: string) => {
-        if (!text.trim()) return
+    const translateText = async (text: string, source: string, target: string) => {
+        if (!text.trim()) return;
 
         try {
-            
-            setIsTranslating(true)
-            const sourceLang = languages.find((lang) => lang.value === source)?.label
-            const targetLang = languages.find((lang) => lang.value === target)?.label
-            
+            setIsTranslating(true);
+            const sourceLang = languages.find((lang) => lang.value === source)?.label;
+            const targetLang = languages.find((lang) => lang.value === target)?.label;
 
             const correctionPrompt = `Correct the following healthcare conversation text that is written on ${sourceLang}.
              Maintain medical accuracy and terminology. Only return the corrected text, nothing else. If the text is already correct, return it as is.
             
-            Text to correct: "${text}"`
+            Text to correct: "${text}"`;
 
-            const correctionResult = await model.generateContent(correctionPrompt)
-            const correctedText = correctionResult.response.text()
-           
+            const correctionResult = await model.generateContent(correctionPrompt);
+            const correctedText = correctionResult.response.text();
+
             const translationPrompt = `Translate the following healthcare conversation from ${sourceLang} to ${targetLang}. 
                 Maintain medical accuracy and terminology. Only return the translated text, nothing else.
                 
-                Text to translate: "${correctedText}"`
-            const translationResult = await model.generateContent(translationPrompt)
-            setTranslatedText(translationResult.response.text())
+                Text to translate: "${correctedText}"`;
+            const translationResult = await model.generateContent(translationPrompt);
+            
+            // Concatenate the new translated text with the existing one
+            setTranslatedText((prevTranslatedText) => 
+                prevTranslatedText ? `${prevTranslatedText}\n${translationResult.response.text()}` : translationResult.response.text()
+            );
         } catch (error) {
-            console.error('Translation error:', error)
+            console.error('Translation error:', error);
         } finally {
-            setIsTranslating(false)
+            setIsTranslating(false);
         }
-    }
+    };
 
     // Speak translated text
     const speakTranslatedText = () => {
-        if (!translatedText || isSpeaking) return
+        if (!translatedText || isSpeaking) return;
 
         if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(translatedText)
-            utterance.lang = targetLanguage
-            utterance.onend = () => setIsSpeaking(false)
+            const utterance = new SpeechSynthesisUtterance(translatedText);
+            utterance.lang = targetLanguage;
+            utterance.onend = () => setIsSpeaking(false);
 
-            setIsSpeaking(true)
-            window.speechSynthesis.speak(utterance)
+            setIsSpeaking(true);
+            window.speechSynthesis.speak(utterance);
         }
-    }
+    };
 
     return (
         <div className="flex flex-col gap-6">
@@ -185,7 +184,6 @@ export default function TranslationApp() {
                         value={sourceLanguage}
                         onChange={(e) => {setSourceLanguage(e.target.value)}}
                         id="source-language"
-                        
                     >
                         {languages.map((lang) => (
                             <option key={lang.value} value={lang.value}>
@@ -206,11 +204,12 @@ export default function TranslationApp() {
                         value={targetLanguage}
                         onChange={(e) => {setTargetLanguage(e.target.value)}}
                         id="target-language"
-                    >               {languages.map((lang) => (
-                        <option key={lang.value} value={lang.value}>
-                            {lang.label}
-                        </option>
-                    ))}
+                    >
+                        {languages.map((lang) => (
+                            <option key={lang.value} value={lang.value}>
+                                {lang.label}
+                            </option>
+                        ))}
                     </select>
                 </div>
             </div>
@@ -274,5 +273,5 @@ export default function TranslationApp() {
                 </Button>
             </div>
         </div>
-    )
+    );
 }
