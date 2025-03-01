@@ -3,19 +3,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select'
 import { Mic, MicOff, Play, RotateCcw } from 'lucide-react'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 // Initialize Google Generative AI
-
-const genAI = new GoogleGenerativeAI('')
+const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY
+const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY)
 const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 // Language options
 const languages = [
@@ -44,6 +37,7 @@ export default function TranslationApp() {
     const [sourceLanguage, setSourceLanguage] = useState('en')
     const [targetLanguage, setTargetLanguage] = useState('es')
     const [transcript, setTranscript] = useState('')
+    const [interimTranscript, setInterimTranscript] = useState('')
     const [translatedText, setTranslatedText] = useState('')
     const [isTranslating, setIsTranslating] = useState(false)
     const [isSpeaking, setIsSpeaking] = useState(false)
@@ -75,11 +69,11 @@ export default function TranslationApp() {
                         interimTranscript += transcript
                     }
                 }
-
+                setInterimTranscript(interimTranscript)
                 setTranscript((prev) => prev + finalTranscript)
 
                 if (finalTranscript) {
-                    await translateText(finalTranscript)
+                    await translateText(finalTranscript, sourceLanguage, targetLanguage)
                 }
             }
 
@@ -94,10 +88,11 @@ export default function TranslationApp() {
                 recognitionRef.current.stop()
             }
         }
-    }, [])
+    }, [sourceLanguage, targetLanguage])
 
     // Update recognition language when source language changes
     useEffect(() => {
+        
         if (recognitionRef.current) {
             recognitionRef.current.lang = sourceLanguage
         }
@@ -105,6 +100,7 @@ export default function TranslationApp() {
 
     // Toggle listening
     const toggleListening = () => {
+        resetAll()
         if (isListening) {
             if (recognitionRef.current) {
                 recognitionRef.current.stop()
@@ -125,35 +121,33 @@ export default function TranslationApp() {
         }
         setIsListening(false)
         setTranscript('')
+        setInterimTranscript('')
         setTranslatedText('')
     }
 
     // Translate text using AI
-    const translateText = async (text: string) => {
+    const translateText = async ( text: string, source: string, target: string) => {
         if (!text.trim()) return
 
         try {
+            
             setIsTranslating(true)
+            const sourceLang = languages.find((lang) => lang.value === source)?.label
+            const targetLang = languages.find((lang) => lang.value === target)?.label
+            
 
-            const sourceLang =
-                languages.find((l) => l.value === sourceLanguage)?.label ||
-                'English'
-            const targetLang =
-                languages.find((l) => l.value === targetLanguage)?.label ||
-                'Spanish'
-
-            const correctionPrompt = `Correct the following healthcare conversation text. Maintain medical accuracy and terminology. Only return the corrected text, nothing else.
+            const correctionPrompt = `Correct the following healthcare conversation text that is written on ${sourceLang}.
+             Maintain medical accuracy and terminology. Only return the corrected text, nothing else. If the text is already correct, return it as is.
             
             Text to correct: "${text}"`
 
             const correctionResult = await model.generateContent(correctionPrompt)
             const correctedText = correctionResult.response.text()
-
+           
             const translationPrompt = `Translate the following healthcare conversation from ${sourceLang} to ${targetLang}. 
                 Maintain medical accuracy and terminology. Only return the translated text, nothing else.
                 
                 Text to translate: "${correctedText}"`
-
             const translationResult = await model.generateContent(translationPrompt)
             setTranslatedText(translationResult.response.text())
         } catch (error) {
@@ -187,24 +181,18 @@ export default function TranslationApp() {
                     >
                         Source Language
                     </label>
-                    <Select
+                    <select
                         value={sourceLanguage}
-                        onValueChange={setSourceLanguage}
+                        onChange={(e) => {setSourceLanguage(e.target.value)}}
+                        id="source-language"
+                        
                     >
-                        <SelectTrigger
-                            id="source-language"
-                            className="w-[180px]"
-                        >
-                            <SelectValue placeholder="Select language" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {languages.map((lang) => (
-                                <SelectItem key={lang.value} value={lang.value}>
-                                    {lang.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                        {languages.map((lang) => (
+                            <option key={lang.value} value={lang.value}>
+                                {lang.label}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -214,24 +202,16 @@ export default function TranslationApp() {
                     >
                         Target Language
                     </label>
-                    <Select
+                    <select
                         value={targetLanguage}
-                        onValueChange={setTargetLanguage}
-                    >
-                        <SelectTrigger
-                            id="target-language"
-                            className="w-[180px]"
-                        >
-                            <SelectValue placeholder="Select language" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {languages.map((lang) => (
-                                <SelectItem key={lang.value} value={lang.value}>
-                                    {lang.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                        onChange={(e) => {setTargetLanguage(e.target.value)}}
+                        id="target-language"
+                    >               {languages.map((lang) => (
+                        <option key={lang.value} value={lang.value}>
+                            {lang.label}
+                        </option>
+                    ))}
+                    </select>
                 </div>
             </div>
 
@@ -242,7 +222,7 @@ export default function TranslationApp() {
                             Original Transcript
                         </h2>
                         <div className="whitespace-pre-wrap">
-                            {transcript || (
+                            {transcript || interimTranscript || (
                                 <span className="text-muted-foreground italic">
                                     {isListening
                                         ? 'Listening...'
